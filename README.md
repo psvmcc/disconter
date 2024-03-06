@@ -7,6 +7,29 @@ podman run --rm --net=host -v /run/podman/podman.sock:/var/run/docker.sock ghcr.
 
 ## how it works
 
+```
+Usage of /disconter:
+  -bind.dns string
+    	Bind the DNS server (default "0.0.0.0:53535")
+  -bind.metrics string
+    	Bind the HTTP metrics server (default "0.0.0.0:9553")
+  -debug
+    	Enable debug logging
+  -docker.refresh.interval int
+    	Container events refresh interval in milliseconds (default 100)
+  -docker.socket string
+    	Docker(Podman) socket path (default "/var/run/docker.sock")
+  -metrics.go
+    	Extend Golang metrics (default true)
+  -v	Print version
+```
+
+### labels
+- **disconter.service** - name of the service, if set then watching for events of this container
+- **disconter.service.priority** - dns discovery priority, default 1
+- **disconter.service.weight** - dns discovery weight, default 1
+- **disconter.service.port** - dns discovery port, default 80
+
 ### run container with label `disconter.service`
 ```
 podman run --rm -l disconter.service=test -ti centos bash
