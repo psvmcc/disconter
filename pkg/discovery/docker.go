@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/VictoriaMetrics/metrics"
 )
 
 var ServiceContainers []ContainerInfo
@@ -48,11 +50,13 @@ func DockerEventListener(socketPath string, eventChan chan<- string) {
 		var conn net.Conn
 		conn, err = connectToSocket(socketPath)
 		if err != nil {
+			metrics.GetOrCreateCounter(`disconter_discovery_errors{type="connectToSocket"}`).Inc()
 			continue
 		}
 		ServiceContainers, err = ListContainers(socketPath)
 		if err != nil {
 			fmt.Println("Error:", err)
+			metrics.GetOrCreateCounter(`disconter_discovery_errors{type="ListContainers"}`).Inc()
 		}
 		go listenForEvents(conn, eventChan, done)
 
@@ -77,6 +81,7 @@ func listenForEvents(conn net.Conn, eventChan chan<- string, done chan<- bool) {
 		err = conn.Close()
 		if err != nil {
 			fmt.Printf("Error: %v", err)
+			metrics.GetOrCreateCounter(`disconter_discovery_errors{type="listenForEvents"}`).Inc()
 		}
 		done <- true
 	}()
@@ -84,6 +89,7 @@ func listenForEvents(conn net.Conn, eventChan chan<- string, done chan<- bool) {
 	req, err := http.NewRequest("GET", "http://localhost/events?filter={\"type\":[\"container\"]}", http.NoBody)
 	if err != nil {
 		fmt.Printf("Error creating HTTP request: %v\n", err)
+		metrics.GetOrCreateCounter(`disconter_discovery_errors{type="listenForEvents"}`).Inc()
 		return
 	}
 
@@ -91,6 +97,7 @@ func listenForEvents(conn net.Conn, eventChan chan<- string, done chan<- bool) {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("Error sending HTTP request: %v\n", err)
+		metrics.GetOrCreateCounter(`disconter_discovery_errors{type="listenForEvents"}`).Inc()
 		return
 	}
 	defer resp.Body.Close()
@@ -102,17 +109,22 @@ func listenForEvents(conn net.Conn, eventChan chan<- string, done chan<- bool) {
 		err = json.Unmarshal([]byte(eventData), &event)
 		if err != nil {
 			fmt.Printf("Error parsing Docker event: %v\n", err)
+			metrics.GetOrCreateCounter(`disconter_discovery_errors{type="listenForEvents"}`).Inc()
 			continue
 		}
 
 		if event.Type == "container" && event.Actor.Attributes.DisconterService != "" && (event.Action == "start" || event.Action == "die") {
 			ServiceContainers, err = ListContainers(DockerSocket)
-
+			if err != nil {
+				fmt.Println("Error:", err)
+				metrics.GetOrCreateCounter(`disconter_discovery_errors{type="ListContainers"}`).Inc()
+			}
 			eventChan <- fmt.Sprint(event)
 		}
 	}
 	if err := scanner.Err(); err != nil {
 		fmt.Printf("Error reading response body: %v\n", err)
+		metrics.GetOrCreateCounter(`disconter_discovery_errors{type="listenForEvents"}`).Inc()
 	}
 }
 

@@ -70,5 +70,6 @@ func HandleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 	err := w.WriteMsg(m)
 	if err != nil {
 		fmt.Println("[ERROR] DNS reply:", err)
+		metrics.GetOrCreateCounter("disconter_dns_errors").Inc()
 	}
 }
