@@ -29,6 +29,7 @@ Usage of /disconter:
 - **disconter.service.priority** - dns discovery priority, default 1
 - **disconter.service.weight** - dns discovery weight, default 1
 - **disconter.service.port** - dns discovery port, default 80
+- **disconter.service.ttl** - dns discovery ttl in seconds, default 0
 
 ### run container with label `disconter.service`
 ```

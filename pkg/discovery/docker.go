@@ -36,6 +36,7 @@ type ContainerInfo struct {
 		Priority uint16
 		Weight   uint16
 		Port     uint16
+		TTL      uint16
 	}
 }
 
@@ -182,6 +183,7 @@ func ListContainers(socket string) (containers []ContainerInfo, err error) {
 		c.DisconterService.Priority = 1
 		c.DisconterService.Weight = 1
 		c.DisconterService.Port = 80
+		c.DisconterService.TTL = 0
 
 		for _, v := range resp.NetworkSettings.Networks {
 			if v.IPAddress != "" {
@@ -212,6 +214,13 @@ func ListContainers(socket string) (containers []ContainerInfo, err error) {
 			port, err := strconv.Atoi(resp.Labels["disconter.service.port"])
 			if err == nil {
 				c.DisconterService.Port = uint16(port)
+			}
+		}
+
+		if resp.Labels["disconter.service.ttl"] != "" {
+			ttl, err := strconv.Atoi(resp.Labels["disconter.service.ttl"])
+			if err == nil {
+				c.DisconterService.TTL = uint16(ttl)
 			}
 		}
 		containers[i] = c

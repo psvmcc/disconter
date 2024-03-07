@@ -34,7 +34,7 @@ func HandleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 			if (dns.TypeToString[q.Qtype] == "A" || dns.TypeToString[q.Qtype] == "ANY") && strings.HasSuffix(q.Name, "container.disconter.") {
 				for _, c := range discovery.ServiceContainers {
 					if q.Name == fmt.Sprintf("%s.container.disconter.", c.Name) {
-						rr, err := dns.NewRR(fmt.Sprintf("%s 0 A %s", q.Name, c.IP))
+						rr, err := dns.NewRR(fmt.Sprintf("%s %d A %s", q.Name, c.DisconterService.TTL, c.IP))
 						if err == nil {
 							m.Answer = append(m.Answer, rr)
 						}
@@ -44,7 +44,7 @@ func HandleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 			if (dns.TypeToString[q.Qtype] == "A" || dns.TypeToString[q.Qtype] == "ANY") && strings.HasSuffix(q.Name, "service.disconter.") {
 				for _, c := range discovery.ServiceContainers {
 					if q.Name == fmt.Sprintf("%s.service.disconter.", c.DisconterService.Name) {
-						rr, err := dns.NewRR(fmt.Sprintf("%s 0 A %s", q.Name, c.IP))
+						rr, err := dns.NewRR(fmt.Sprintf("%s %d A %s", q.Name, c.DisconterService.TTL, c.IP))
 						if err == nil {
 							m.Answer = append(m.Answer, rr)
 						}
@@ -54,11 +54,11 @@ func HandleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 			if dns.TypeToString[q.Qtype] == "SRV" && strings.HasSuffix(q.Name, "service.disconter.") {
 				for _, c := range discovery.ServiceContainers {
 					if q.Name == fmt.Sprintf("%s.service.disconter.", c.DisconterService.Name) || q.Name == fmt.Sprintf("_%s._tcp.service.disconter.", c.DisconterService.Name) {
-						rr, err := dns.NewRR(fmt.Sprintf("%s 0 SRV %d %d %d %s.container.disconter", q.Name, c.DisconterService.Priority, c.DisconterService.Weight, c.DisconterService.Port, c.Name))
+						rr, err := dns.NewRR(fmt.Sprintf("%s %d SRV %d %d %d %s.container.disconter", q.Name, c.DisconterService.TTL, c.DisconterService.Priority, c.DisconterService.Weight, c.DisconterService.Port, c.Name))
 						if err == nil {
 							m.Answer = append(m.Answer, rr)
 						}
-						rrA, err := dns.NewRR(fmt.Sprintf("%s.container.disconter 0 A %s", c.Name, c.IP))
+						rrA, err := dns.NewRR(fmt.Sprintf("%s.container.disconter %d A %s", c.Name, c.DisconterService.TTL, c.IP))
 						if err == nil {
 							m.Extra = append(m.Extra, rrA)
 						}
