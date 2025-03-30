@@ -9,7 +9,7 @@ import (
 
 func SetFlagsFromEnvironment() (err error) {
 	flag.VisitAll(func(f *flag.Flag) {
-		name := strings.ToUpper(strings.Replace(f.Name, ".", "_", -1))
+		name := strings.ToUpper(strings.ReplaceAll(f.Name, ".", "_"))
 		if value, ok := os.LookupEnv(name); ok {
 			err2 := flag.Set(f.Name, value)
 			if err2 != nil {
