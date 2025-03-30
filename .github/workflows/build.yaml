@@ -15,7 +15,7 @@ jobs:
       - name: set up go
         uses: actions/setup-go@v5
         with:
-          go-version: "v1.24.1"
+          go-version: "stable"
           cache: false
         id: go
 
